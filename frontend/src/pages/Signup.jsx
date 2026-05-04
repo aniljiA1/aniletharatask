@@ -1,15 +1,36 @@
 import { useState } from "react";
 import API from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const navigate = useNavigate();
 
   const signup = async () => {
-    if (!form.name || !form.email || !form.password) {
-      return alert("All fields required");
+    try {
+      if (!form.name || !form.email || !form.password) {
+        return alert("All fields required");
+      }
+
+      // 1️⃣ Create user
+      await API.post("/auth/signup", form);
+
+      // 2️⃣ Auto login
+      const res = await API.post("/auth/login", {
+        email: form.email,
+        password: form.password,
+      });
+
+      // 3️⃣ Save token
+      localStorage.setItem("token", res.data.token);
+
+      // 4️⃣ Redirect to dashboard
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert("Signup failed");
     }
-    await API.post("/auth/signup", form);
-    alert("User created");
   };
 
   return (
